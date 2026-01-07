@@ -1,6 +1,7 @@
 import express from "express";
 import authRoutes from "./routes/auth.js";
 import formRoutes from "./routes/forms.js";
+import publicRoutes from "./routes/public.js";
 import cors from "cors";
 
 const app = express();
@@ -11,6 +12,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/forms", formRoutes);
+app.use("/api/public", publicRoutes);
 
 app.use((err: any, req: any, res: any, next: any) => {
   console.error(err.stack);
