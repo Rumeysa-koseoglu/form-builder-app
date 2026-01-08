@@ -51,9 +51,12 @@ router.post("/forms/:formId/submit", async (req: Request, res: Response) => {
   try {
     // get questions of form and its necessity situations
     const questions = await query(
-      "SELECT id, is_required FROM questions WHERE form_id = $1",
+      "SELECT id, is_required, correct_answer, marks FROM questions WHERE form_id = $1",
       [formId]
     );
+
+    // variable to keep total score
+    let totalScore = 0;
 
     // validation
     for (const q of questions.rows) {
@@ -63,11 +66,15 @@ router.post("/forms/:formId/submit", async (req: Request, res: Response) => {
           .status(400)
           .json({ error: `Question ID ${q.id} is required.` });
       }
+      if (answer && q.correct_answer && q.correct_answer === answer.value) {
+        totalScore += q.marks || 0;
+      }
     }
+
     // save the answer to the main table
     const responseResult = await query(
-      "INSERT INTO responses (form_id) VALUES ($1) RETURNING id",
-      [formId]
+      "INSERT INTO responses (form_id, total_score) VALUES ($1, $2) RETURNING id",
+      [formId, totalScore]
     );
 
     const responseId = responseResult.rows[0].id;
@@ -80,8 +87,10 @@ router.post("/forms/:formId/submit", async (req: Request, res: Response) => {
       );
     }
 
-    //return confirmation message
-    res.status(201).json({ message: "Form submitted successfully" });
+    //return confirmation message and optional score
+    res
+      .status(201)
+      .json({ message: "Form submitted successfully", score: totalScore });
   } catch (err) {
     console.error(err);
     res
