@@ -60,6 +60,39 @@ router.post("/:formId/questions", authenticateToken, async (req: any, res) => {
   }
 });
 
+router.get("/:formId/responses", authenticateToken, async (req: any, res) => {
+  const { formId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    //security control
+    const formCheck = await query(
+      "SELECT creator_id FROM forms WHERE id = $1",
+      [formId]
+    );
+
+    if (formCheck.rows.length === 0) {
+      return res.status(404).json({ error: "Form not found" });
+    }
+
+    if (formCheck.rows[0].creator_id !== userId) {
+      return res
+        .status(403)
+        .json({ error: " Unauthorized to view these responses" });
+    }
+
+    //get responses: pull data from responses table
+    const responses = await query(
+      "SELECT id, submitted_at, total_score FROM responses WHERE form_id = $1 ORDER BY submitted_at DESC",
+      [formId]
+    );
+    res.json(responses.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not fetch responses" });
+  }
+});
+
 router.get("/", authenticateToken, async (req: any, res) => {
   try {
     const result = await query(
