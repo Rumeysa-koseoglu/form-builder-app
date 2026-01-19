@@ -1,5 +1,291 @@
-function Home() {
-  return <div></div>;
-}
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Link,
+  Eye,
+  Edit3,
+  Trash2,
+  Layout,
+  BarChart3,
+  Settings,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import type { Form, FormResponse } from "../types";
 
-export default Home;
+const FormDashboard: React.FC = () => {
+  const [forms, setForms] = useState<Form[]>([]);
+  const [responses, setResponses] = useState<FormResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const mockForms: Form[] = [
+          {
+            id: "f1",
+            creatorId: "u1",
+            title: "Customer Feedback Survey",
+            description: "Monthly customer satisfaction check.",
+            isQuiz: false,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            id: "f2",
+            creatorId: "u1",
+            title: "JavaScript Fundamentals Quiz",
+            description: "Final exam for the JS course.",
+            isQuiz: true,
+            isActive: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ];
+
+        const mockResponses: FormResponse[] = [
+          {
+            id: "r1",
+            formId: "f1",
+            answers: [],
+            totalScore: 0,
+            submittedAt: "2023-10-01",
+          },
+          {
+            id: "r2",
+            formId: "f1",
+            answers: [],
+            totalScore: 0,
+            submittedAt: "2023-10-02",
+          },
+          {
+            id: "r3",
+            formId: "f2",
+            answers: [],
+            totalScore: 85,
+            submittedAt: "2023-10-03",
+          },
+        ];
+
+        setForms(mockForms);
+        setResponses(mockResponses);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const getResponseCount = (formId: string) => {
+    return responses.filter((r) => r.formId === formId).length;
+  };
+
+  const copyShareLink = (formId: string) => {
+    const url = `${window.location.origin}/view/${formId}`;
+    navigator.clipboard.writeText(url);
+    alert("Public link copied!");
+  };
+
+  if (isLoading)
+    return (
+      <div className="p-10 text-center font-medium">Loading Dashboard...</div>
+    );
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B]">
+      {/* HEADER */}
+      <header className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-20 shadow-sm">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="bg-indigo-600 p-2 rounded-lg">
+              <Layout className="text-white" size={20} />
+            </div>
+            <span className="text-xl font-bold tracking-tight">
+              FormBuilder
+            </span>
+          </div>
+          <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-md active:scale-95">
+            <Plus size={20} />
+            Create New Form
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-10">
+        {/* STATS SECTION */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <StatCard title="Total Forms" value={forms.length} color="indigo" />
+          <StatCard
+            title="Total Responses"
+            value={responses.length}
+            color="emerald"
+          />
+          <StatCard
+            title="Quiz Type"
+            value={forms.filter((f) => f.isQuiz).length}
+            color="amber"
+          />
+          <StatCard
+            title="Active Now"
+            value={forms.filter((f) => f.isActive).length}
+            color="sky"
+          />
+        </section>
+
+        {/* FORM LIST */}
+        <div className="mb-6 flex justify-between items-end">
+          <h2 className="text-2xl font-bold">Your Forms</h2>
+          <p className="text-slate-500 text-sm">Showing {forms.length} forms</p>
+        </div>
+
+        {forms.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="grid gap-4">
+            {forms.map((form) => (
+              <div
+                key={form.id}
+                className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className="font-bold text-lg">{form.title}</h3>
+                    {form.isQuiz && (
+                      <span className="bg-amber-100 text-amber-700 text-[10px] uppercase font-black px-2 py-0.5 rounded">
+                        Quiz
+                      </span>
+                    )}
+                    <StatusBadge active={form.isActive} />
+                  </div>
+                  <p className="text-slate-500 text-sm line-clamp-1">
+                    {form.description}
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-2 uppercase font-semibold tracking-wider">
+                    Created: {new Date(form.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-6 md:px-8 border-l border-r border-slate-100">
+                  <div className="text-center">
+                    <p className="text-xs text-slate-400 font-bold uppercase">
+                      Responses
+                    </p>
+                    <p className="text-xl font-black text-indigo-600">
+                      {getResponseCount(form.id)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <ActionButton
+                    icon={<BarChart3 size={18} />}
+                    label="Responses"
+                    className="text-indigo-600 hover:bg-indigo-50"
+                    onClick={() =>
+                      console.log("Redirect to Response Management")
+                    }
+                  />
+                  <ActionButton
+                    icon={<Link size={18} />}
+                    label="Share"
+                    className="text-slate-600 hover:bg-slate-100"
+                    onClick={() => copyShareLink(form.id)}
+                  />
+                  <ActionButton
+                    icon={<Edit3 size={18} />}
+                    label="Edit"
+                    className="text-emerald-600 hover:bg-emerald-50"
+                  />
+                  <ActionButton
+                    icon={<Trash2 size={18} />}
+                    label="Delete"
+                    className="text-rose-600 hover:bg-rose-50"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+// --- HELPER COMPONENTS ---
+
+const StatCard = ({
+  title,
+  value,
+  color,
+}: {
+  title: string;
+  value: number;
+  color: string;
+}) => {
+  const colors: any = {
+    indigo: "border-indigo-200 text-indigo-600",
+    emerald: "border-emerald-200 text-emerald-600",
+    amber: "border-amber-200 text-amber-600",
+    sky: "border-sky-200 text-sky-600",
+  };
+  return (
+    <div
+      className={`bg-white p-6 rounded-2xl border-b-4 shadow-sm ${colors[color]}`}
+    >
+      <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">
+        {title}
+      </p>
+      <p className="text-3xl font-black">{value}</p>
+    </div>
+  );
+};
+
+const StatusBadge = ({ active }: { active: boolean }) => (
+  <span
+    className={`flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+      active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+    }`}
+  >
+    {active ? <CheckCircle size={12} /> : <XCircle size={12} />}
+    {active ? "ACTIVE" : "CLOSED"}
+  </span>
+);
+
+const ActionButton = ({
+  icon,
+  label,
+  onClick,
+  className,
+}: {
+  icon: any;
+  label: string;
+  onClick?: () => void;
+  className: string;
+}) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all font-semibold text-sm ${className}`}
+  >
+    {icon}
+    <span className="hidden lg:inline">{label}</span>
+  </button>
+);
+
+const EmptyState = () => (
+  <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-16 text-center">
+    <div className="inline-block p-4 bg-slate-50 rounded-full mb-4">
+      <Layout size={40} className="text-slate-300" />
+    </div>
+    <h3 className="text-xl font-bold mb-2">No forms found</h3>
+    <p className="text-slate-500 mb-8 max-w-sm mx-auto">
+      You haven't created any forms or quizzes yet. Start collecting data in
+      minutes!
+    </p>
+    <button className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:-translate-y-1 transition-transform">
+      Create Your First Form
+    </button>
+  </div>
+);
+
+export default FormDashboard;
