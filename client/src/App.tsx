@@ -2,6 +2,7 @@ import "./App.css";
 import AuthForm from "./components/AuthForm";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./components/Home";
+import CreateForm from "./components/CreateForm";
 import type { ReactNode } from "react";
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
   return (
     <Routes>
       <Route path="/auth" element={<AuthForm />} />
+      <Route path="/create-form" element={<CreateForm />} />
       <Route
         path="/"
         element={
