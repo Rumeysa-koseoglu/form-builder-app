@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   Plus,
   Trash2,
-  ChevronDown,
   Type,
   AlignLeft,
   CheckSquare,
@@ -11,9 +10,10 @@ import {
   Settings,
   Eye,
   Save,
-  ToggleLeft,
 } from "lucide-react";
 import type { Form, Question, QuestionType } from "../types";
+import PreviewModal from "./PreviewModal";
+import PublishModal from "./PublishModal";
 
 const FormBuilder: React.FC = () => {
   // 1. Initial State following your Form Interface
@@ -25,6 +25,30 @@ const FormBuilder: React.FC = () => {
   });
 
   const [questions, setQuestions] = useState<Question[]>([]);
+
+  const [activeModal, setActiveModal] = useState<
+    "none" | "preview" | "publish"
+  >("none");
+
+  {
+    activeModal === "preview" && (
+      <PreviewModal
+        form={formConfig}
+        questions={questions}
+        onClose={() => setActiveModal("none")}
+      />
+    );
+  }
+
+  {
+    activeModal === "publish" && (
+      <PublishModal
+        form={formConfig}
+        questions={questions}
+        onClose={() => setActiveModal("none")}
+      />
+    );
+  }
 
   // 2. Add New Question Logic
   const addQuestion = (type: QuestionType) => {
@@ -66,11 +90,17 @@ const FormBuilder: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold transition-all">
+            <button
+              className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-semibold transition-all active:scale-95 cursor-pointer"
+              onClick={() => setActiveModal("preview")}
+            >
               <Eye size={18} />
               Preview
             </button>
-            <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95">
+            <button
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95 cursor-pointer"
+              onClick={() => setActiveModal("publish")}
+            >
               <Save size={18} />
               Publish Form
             </button>
@@ -122,7 +152,6 @@ const FormBuilder: React.FC = () => {
             </label>
           </div>
         </div>
-
         {/* QUESTIONS LIST */}
         <div className="space-y-4">
           {questions.map((q, index) => (
@@ -251,7 +280,6 @@ const FormBuilder: React.FC = () => {
             </div>
           ))}
         </div>
-
         {/* ADD QUESTION BUTTONS */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-10">
           <TypeButton
@@ -279,7 +307,21 @@ const FormBuilder: React.FC = () => {
             label="Dropdown"
             onClick={() => addQuestion("DROPDOWN")}
           />
-        </div>
+        </div>{" "}
+        {activeModal === "preview" && (
+          <PreviewModal
+            form={formConfig}
+            questions={questions}
+            onClose={() => setActiveModal("none")}
+          />
+        )}
+        {activeModal === "publish" && (
+          <PublishModal
+            form={formConfig}
+            questions={questions}
+            onClose={() => setActiveModal("none")}
+          />
+        )}
       </main>
     </div>
   );
