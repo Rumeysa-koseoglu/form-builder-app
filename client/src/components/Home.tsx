@@ -2,12 +2,10 @@ import React, { useState, useEffect } from "react";
 import {
   Plus,
   Link,
-  Eye,
   Edit3,
   Trash2,
   Layout,
   BarChart3,
-  Settings,
   CheckCircle,
   XCircle,
 } from "lucide-react";
