@@ -12,11 +12,14 @@ import {
   XCircle,
 } from "lucide-react";
 import type { Form, FormResponse } from "../types";
+import { useNavigate } from "react-router-dom";
 
 const FormDashboard: React.FC = () => {
   const [forms, setForms] = useState<Form[]>([]);
   const [responses, setResponses] = useState<FormResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,7 +108,10 @@ const FormDashboard: React.FC = () => {
               FormBuilder
             </span>
           </div>
-          <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-md active:scale-95">
+          <button
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-md active:scale-95"
+            onClick={() => navigate("/create-form")}
+          >
             <Plus size={20} />
             Create New Form
           </button>
