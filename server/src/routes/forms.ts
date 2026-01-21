@@ -4,21 +4,41 @@ import { authenticateToken } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-//Creating Form
-router.post("/", authenticateToken, async (req: any, res) => {
-  const { title, description } = req.body;
-  const creator_id = req.user.id;
-
+// Public Route
+router.get("/public/:formId", async (req, res) => {
+  const { formId } = req.params;
   try {
-    const result = await query(
-      "INSERT INTO forms (title, description, creator_id) VALUES ($1, $2, $3) RETURNING *",
-      [title, description, creator_id]
+    const form = await query("SELECT * FROM forms WHERE id = $1", [formId]);
+    const questions = await query(
+      'SELECT * FROM questions WHERE form_id = $1 ORDER BY "order" ASC',
+      [formId]
     );
-    res.status(201).json(result.rows[0]);
+
+    if (form.rows.length === 0) {
+      return res.status(404).json({ error: "Form not found" });
+    }
+
+    return res.json({ form: form.rows[0], questions: questions.rows });
   } catch (err) {
-    res.status(500).json({ error: "The form could not be created" });
+    console.error(err);
+    res.status(500).json({ error: "Could not load public form" });
   }
-});
+}),
+  //Creating Form
+  router.post("/", authenticateToken, async (req: any, res) => {
+    const { title, description } = req.body;
+    const creator_id = req.user.id;
+
+    try {
+      const result = await query(
+        "INSERT INTO forms (title, description, creator_id) VALUES ($1, $2, $3) RETURNING *",
+        [title, description, creator_id]
+      );
+      res.status(201).json(result.rows[0]);
+    } catch (err) {
+      res.status(500).json({ error: "The form could not be created" });
+    }
+  });
 
 //Adding question
 router.post("/:formId/questions", authenticateToken, async (req: any, res) => {
@@ -129,7 +149,7 @@ router.delete(
 
       // 2. Insert Form with Quiz Support
       const formResult = await query(
-        `INSERT INTO forms (title, description, creator_id, is_quiz, is_active) 
+        `INSERT INTO forms (title, description, creator_id, is_quiz, is_published) 
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
         [title, description, creator_id, isQuiz || false, true]
       );
@@ -150,7 +170,7 @@ router.delete(
             q.options ? JSON.stringify(q.options) : null,
             q.points || 0,
             q.correctAnswer ? JSON.stringify(q.correctAnswer) : null,
-            q.order,
+            q.order || 0,
           ]
         );
       }
@@ -162,11 +182,42 @@ router.delete(
         message: "Form published successfully",
         id: formId,
       });
-    } catch (err) {
+    } catch (err: any) {
       // Rollback if anything fails
       await query("ROLLBACK");
       console.error("Publish Error:", err);
-      res.status(500).json({ error: "Could not publish form and questions." });
+      res.status(500).json({
+        error: "Could not publish form and questions.",
+        details: err.message,
+      });
+    }
+  }),
+
+  // Submit Response
+  router.post("/:formId/submit", async (req, res) => {
+    const { formId } = req.params;
+    const { answers } = req.body; // Array of {questionId, value}
+
+    try {
+      await query("BEGIN");
+
+      const responseResult = await query(
+        "INSERT INTO responses (form_id, submitted_at) VALUES ($1, NOW()) RETURNING id",
+        [formId]
+      );
+      const responseId = responseResult.rows[0].id;
+
+      for (const ans of answers) {
+        await query(
+          "INSERT INTO answers (response_id, question_id, value) VALUES ($1, $2, $3)",
+          [responseId, ans.questionId, JSON.stringify(ans.value)]
+        );
+      }
+      await query("COMMIT");
+      res.status(201).json({ message: "Response submitted" });
+    } catch (err) {
+      await query("ROLLBACK");
+      res.status(500).json({ error: "Submit failed" });
     }
   })
 );
