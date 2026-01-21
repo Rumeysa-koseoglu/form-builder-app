@@ -116,7 +116,59 @@ router.delete(
     } catch (err) {
       res.status(500).json({ error: "Question could not be deleted" });
     }
-  }
+  },
+
+  // Bulk Publish - Creates form and all questions in one transaction
+  router.post("/publish", authenticateToken, async (req: any, res) => {
+    const { title, description, isQuiz, questions } = req.body;
+    const creator_id = req.user.id;
+
+    try {
+      // 1. Start Transaction
+      await query("BEGIN");
+
+      // 2. Insert Form with Quiz Support
+      const formResult = await query(
+        `INSERT INTO forms (title, description, creator_id, is_quiz, is_active) 
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [title, description, creator_id, isQuiz || false, true]
+      );
+
+      const formId = formResult.rows[0].id;
+
+      // 3. Insert All Questions
+      for (const q of questions) {
+        await query(
+          `INSERT INTO questions 
+         (form_id, text, type, is_required, options, points, correct_answer, "order") 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            formId,
+            q.questionText,
+            q.type.toLowerCase(),
+            q.isRequired,
+            q.options ? JSON.stringify(q.options) : null,
+            q.points || 0,
+            q.correctAnswer ? JSON.stringify(q.correctAnswer) : null,
+            q.order,
+          ]
+        );
+      }
+
+      // 4. Commit Transaction
+      await query("COMMIT");
+
+      res.status(201).json({
+        message: "Form published successfully",
+        id: formId,
+      });
+    } catch (err) {
+      // Rollback if anything fails
+      await query("ROLLBACK");
+      console.error("Publish Error:", err);
+      res.status(500).json({ error: "Could not publish form and questions." });
+    }
+  })
 );
 
 export default router;
