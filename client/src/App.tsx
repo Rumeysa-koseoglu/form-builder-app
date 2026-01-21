@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./components/Home";
 import CreateForm from "./components/CreateForm";
 import type { ReactNode } from "react";
+import PublicFormView from "./components/PublicFormView";
 
 function App() {
   const PrivateRoute = ({ children }: { children: ReactNode }) => {
@@ -14,6 +15,7 @@ function App() {
     <Routes>
       <Route path="/auth" element={<AuthForm />} />
       <Route path="/create-form" element={<CreateForm />} />
+      <Route path="/view/:formId" element={<PublicFormView />} />
       <Route
         path="/"
         element={
