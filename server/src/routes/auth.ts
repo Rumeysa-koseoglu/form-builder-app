@@ -3,7 +3,7 @@ import express, { type Request, type Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { pool } from "../db.js";
-console.log("AUTH ROUTES FILE LOADED");
+
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_KEY;
@@ -41,24 +41,18 @@ router.post("/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
-    console.log("LOGIN BODY: ", req.body);
-
     const userResult = await pool.query(
       "SELECT * FROM users WHERE email = $1",
       [email]
     );
 
-    console.log("QUERY RESULT: ", userResult.rows);
-
     const user = userResult.rows[0];
-    console.log("USER: ", user);
+
     if (!user) {
       return res.status(400).json({ error: "User not found" });
     }
-    console.log("USER PASSWORD FROM DB: ", user.password);
 
     const validPassword = await bcrypt.compare(password, user.password);
-    console.log("PASSWORD VALID: ", validPassword);
 
     if (!validPassword) {
       return res.status(403).json({ error: "Incorrect password" });
