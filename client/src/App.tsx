@@ -13,9 +13,6 @@ function App() {
   };
   return (
     <Routes>
-      <Route path="/auth" element={<AuthForm />} />
-      <Route path="/create-form" element={<CreateForm />} />
-      <Route path="/view/:formId" element={<PublicFormView />} />
       <Route
         path="/"
         element={
@@ -24,6 +21,10 @@ function App() {
           </PrivateRoute>
         }
       />
+      <Route path="/auth" element={<AuthForm />} />
+      <Route path="/create-form" element={<CreateForm />} />
+      <Route path="/view/:formId" element={<PublicFormView />} />
+      <Route path="/edit-form/:formId" element={<CreateForm />} />
     </Routes>
   );
 }
