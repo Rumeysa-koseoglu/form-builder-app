@@ -93,6 +93,10 @@ const PublishModal: React.FC<PublishModalProps> = ({
         }),
       });
 
+      if (response.status === 401) {
+        throw new Error("Your session has expired. Please log in again.");
+      }
+
       if (!response.ok) {
         throw new Error(
           "Server failed to save the form. Please try again later."
@@ -118,7 +122,7 @@ const PublishModal: React.FC<PublishModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 font-sans">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 font-ubuntu">
       <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl max-w-md w-full animate-in zoom-in duration-300">
         {/* --- IDLE / LOADING STATE --- */}
         {(status === "idle" ||
