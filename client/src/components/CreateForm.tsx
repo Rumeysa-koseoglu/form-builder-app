@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Trash2,
@@ -10,11 +10,12 @@ import {
   Settings,
   Eye,
   Save,
+  Edit3,
 } from "lucide-react";
 import type { Form, Question, QuestionType } from "../types";
 import PreviewModal from "./PreviewModal";
 import PublishModal from "./PublishModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const FormBuilder: React.FC = () => {
   // 1. Initial State following your Form Interface
@@ -25,7 +26,95 @@ const FormBuilder: React.FC = () => {
     isActive: true,
   });
 
+  const [isInitialLoading, setIsInitialLoading] = useState<Boolean>(false);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [title, setTitle] = useState<String>();
+  const [description, setDescription] = useState<String>();
+  const [isQuiz, setIsQuiz] = useState<String>();
+  const { formId } = useParams<{ formId: string }>();
+
+  useEffect(() => {
+    if (formId) {
+      const fetchFormData = async () => {
+        setIsInitialLoading(true);
+        try {
+          const token = localStorage.getItem("token");
+          const res = await fetch(`/api/forms/edit/${formId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+
+          setFormConfig({
+            title: data.form.title,
+            description: data.form.description,
+            isQuiz: data.form.is_quiz,
+          });
+
+          if (data.questions) {
+            setQuestions(
+              data.questions.map((q: any) => ({
+                ...q,
+                questionText: q.text,
+                type: q.type.toUpperCase(),
+                options:
+                  typeof q.options === "string"
+                    ? JSON.parse(q.options)
+                    : q.options,
+              }))
+            );
+          }
+        } catch (err) {
+          console.error("Veri çekme hatası:", err);
+        } finally {
+          setIsInitialLoading(false);
+        }
+      };
+      fetchFormData();
+    }
+  }, [formId]);
+
+  const handleSave = async () => {
+    if (!formConfig.title) {
+      alert("Please enter a form title.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const method = formId ? "PUT" : "POST";
+      const url = formId ? `/api/forms/${formId}` : "/api/forms/publish";
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          isQuiz,
+
+          questions: questions.map((q, index) => ({
+            ...q,
+            text: q.questionText,
+            order: index,
+          })),
+        }),
+      });
+
+      if (response.ok) {
+        navigate("/dashboard");
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.error}`);
+      }
+    } catch (err) {
+      console.error("Save error:", err);
+      alert("Something went wrong while saving the form.");
+    }
+  };
 
   const navigate = useNavigate();
 
@@ -80,6 +169,27 @@ const FormBuilder: React.FC = () => {
     setQuestions(questions.filter((q) => q.id !== id));
   };
 
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+        {/* loading animation */}
+        <div className="relative w-20 h-20">
+          <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+        </div>
+
+        <div className="mt-8 flex flex-col items-center">
+          <h2 className="text-xl font-black text-slate-800 animate-pulse italic">
+            Fetching form details...
+          </h2>
+          <p className="text-slate-400 text-sm mt-2 font-medium uppercase tracking-[0.2em]">
+            Please wait a moment
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 pb-20 font-ubuntu">
       {/* BUILDER HEADER */}
@@ -108,10 +218,12 @@ const FormBuilder: React.FC = () => {
             </button>
             <button
               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95 cursor-pointer"
-              onClick={() => setActiveModal("publish")}
+              onClick={() => {
+                formId ? setActiveModal("publish") : handleSave();
+              }}
             >
-              <Save size={18} />
-              Publish Form
+              {formId ? <Edit3 size={20} /> : <Save size={20} />}
+              {formId ? "Update Form" : "Publish Form"}
             </button>
           </div>
         </div>
