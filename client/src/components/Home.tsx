@@ -90,7 +90,22 @@ const FormDashboard: React.FC = () => {
 
   if (isLoading)
     return (
-      <div className="p-10 text-center font-medium">Loading Dashboard...</div>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+        {/* loading animation */}
+        <div className="relative w-20 h-20">
+          <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+        </div>
+
+        <div className="mt-8 flex flex-col items-center">
+          <h2 className="text-xl font-black text-slate-800 animate-pulse italic">
+            Returning to Dashboard...
+          </h2>
+          <p className="text-slate-400 text-sm mt-2 font-medium uppercase tracking-[0.2em]">
+            Please wait a moment
+          </p>
+        </div>
+      </div>
     );
 
   return (
