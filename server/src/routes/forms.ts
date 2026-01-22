@@ -116,7 +116,7 @@ router.get("/:formId/responses", authenticateToken, async (req: any, res) => {
 router.get("/", authenticateToken, async (req: any, res) => {
   try {
     const result = await query(
-      "SELECT * FROM forms WHERE creator_id = $1 ORDER BY created_at DESC",
+      "SELECT f.*, COUNT(r.id) as response_count FROM forms f LEFT JOIN responses r ON f.id = r.form_id WHERE f.creator_id = $1 GROUP BY f.id ORDER BY f.created_at DESC",
       [req.user.id]
     );
     res.json(result.rows);
@@ -125,6 +125,7 @@ router.get("/", authenticateToken, async (req: any, res) => {
   }
 });
 
+// Delete questions
 router.delete(
   "/questions/:questionId",
   authenticateToken,
@@ -137,6 +138,19 @@ router.delete(
       res.status(500).json({ error: "Question could not be deleted" });
     }
   },
+
+  //Delete form
+  router.delete("/:id", authenticateToken, async (req: any, res) => {
+    try {
+      await query("DELETE FROM forms WHERE id = $1 AND creator_id = $2", [
+        req.params.id,
+        req.user.id,
+      ]);
+      res.json({ message: "Form deleted" });
+    } catch (err) {
+      res.status(500).json({ error: "Deletion failed." });
+    }
+  }),
 
   // Bulk Publish - Creates form and all questions in one transaction
   router.post("/publish", authenticateToken, async (req: any, res) => {
