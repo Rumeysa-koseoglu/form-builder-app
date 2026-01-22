@@ -8,74 +8,57 @@ import {
   BarChart3,
   CheckCircle,
   XCircle,
+  LogOut,
 } from "lucide-react";
 import type { Form, FormResponse } from "../types";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const FormDashboard: React.FC = () => {
   const [forms, setForms] = useState<Form[]>([]);
   const [responses, setResponses] = useState<FormResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { formId } = useParams<{ formId: string }>();
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchMyForms = async () => {
       try {
-        const mockForms: Form[] = [
-          {
-            id: "f1",
-            creatorId: "u1",
-            title: "Customer Feedback Survey",
-            description: "Monthly customer satisfaction check.",
-            isQuiz: false,
-            isActive: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+        const token = localStorage.getItem("token");
+        const response = await fetch("/api/forms", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-          {
-            id: "f2",
-            creatorId: "u1",
-            title: "JavaScript Fundamentals Quiz",
-            description: "Final exam for the JS course.",
-            isQuiz: true,
-            isActive: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ];
+        });
 
-        const mockResponses: FormResponse[] = [
-          {
-            id: "r1",
-            formId: "f1",
-            answers: [],
-            totalScore: 0,
-            submittedAt: "2023-10-01",
-          },
-          {
-            id: "r2",
-            formId: "f1",
-            answers: [],
-            totalScore: 0,
-            submittedAt: "2023-10-02",
-          },
-          {
-            id: "r3",
-            formId: "f2",
-            answers: [],
-            totalScore: 85,
-            submittedAt: "2023-10-03",
-          },
-        ];
+        if (!response.ok) throw new Error("Failed to fetch forms");
 
-        setForms(mockForms);
-        setResponses(mockResponses);
+        const data = await response.json();
+        console.log("Dashboard'a gelen ham veri:", data);
+
+        const rawForms = Array.isArray(data) ? data : data.rows || [];
+
+        const formattedForms = rawForms.map((f: any) => ({
+          id: f.id,
+          title: f.title,
+          description: f.description,
+          isQuiz: f.is_quiz,
+
+          isActive: f.is_published,
+          createdAt: f.created_at,
+          responseCount: f.response_count || 0,
+        }));
+
+        setForms(formattedForms);
+      } catch (err) {
+        console.error("Dashboard yüklenirken hata oluştu:", err);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchData();
+
+    fetchMyForms();
   }, []);
 
   const getResponseCount = (formId: string) => {
@@ -83,7 +66,7 @@ const FormDashboard: React.FC = () => {
   };
 
   const copyShareLink = (formId: string) => {
-    const url = `${window.location.origin}/view/${formId}`;
+    const url = `${window.location.origin}/view-form/${formId}`;
     navigator.clipboard.writeText(url);
     alert("Public link copied!");
   };
@@ -94,7 +77,7 @@ const FormDashboard: React.FC = () => {
     );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B]">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-ubuntu">
       {/* HEADER */}
       <header className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-20 shadow-sm">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -106,13 +89,16 @@ const FormDashboard: React.FC = () => {
               FormBuilder
             </span>
           </div>
-          <button
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-md active:scale-95"
-            onClick={() => navigate("/create-form")}
-          >
-            <Plus size={20} />
-            Create New Form
-          </button>
+          <span className="flex flex-row gap-4">
+            <GoBackToLoginPage />
+            <button
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-md active:scale-95 cursor-pointer"
+              onClick={() => navigate("/create-form")}
+            >
+              <Plus size={20} />
+              Create New Form
+            </button>
+          </span>
         </div>
       </header>
 
@@ -276,20 +262,42 @@ const ActionButton = ({
   </button>
 );
 
-const EmptyState = () => (
-  <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-16 text-center">
-    <div className="inline-block p-4 bg-slate-50 rounded-full mb-4">
-      <Layout size={40} className="text-slate-300" />
+const EmptyState = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-16 text-center">
+      <div className="inline-block p-4 bg-slate-50 rounded-full mb-4">
+        <Layout size={40} className="text-slate-300" />
+      </div>
+      <h3 className="text-xl font-bold mb-2">No forms found</h3>
+      <p className="text-slate-500 mb-8 max-w-sm mx-auto">
+        You haven't created any forms or quizzes yet. Start collecting data in
+        minutes!
+      </p>
+      <button
+        className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:-translate-y-1 transition-transform cursor-pointer"
+        onClick={() => navigate("/create-form")}
+      >
+        Create Your First Form
+      </button>
     </div>
-    <h3 className="text-xl font-bold mb-2">No forms found</h3>
-    <p className="text-slate-500 mb-8 max-w-sm mx-auto">
-      You haven't created any forms or quizzes yet. Start collecting data in
-      minutes!
-    </p>
-    <button className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:-translate-y-1 transition-transform">
-      Create Your First Form
-    </button>
-  </div>
-);
+  );
+};
+
+const GoBackToLoginPage = () => {
+  const navigate = useNavigate();
+
+  return (
+    <>
+      <button title="Log Out">
+        <LogOut
+          className="size-7 text-indigo-400 hover:text-indigo-600 transition-transform active:scale-85 cursor-pointer"
+          onClick={() => navigate("/auth")}
+        />
+      </button>
+    </>
+  );
+};
 
 export default FormDashboard;
