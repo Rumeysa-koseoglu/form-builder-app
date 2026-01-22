@@ -14,6 +14,7 @@ import {
 import type { Form, Question, QuestionType } from "../types";
 import PreviewModal from "./PreviewModal";
 import PublishModal from "./PublishModal";
+import { useNavigate } from "react-router-dom";
 
 const FormBuilder: React.FC = () => {
   // 1. Initial State following your Form Interface
@@ -25,6 +26,8 @@ const FormBuilder: React.FC = () => {
   });
 
   const [questions, setQuestions] = useState<Question[]>([]);
+
+  const navigate = useNavigate();
 
   const [activeModal, setActiveModal] = useState<
     "none" | "preview" | "publish"
@@ -86,7 +89,13 @@ const FormBuilder: React.FC = () => {
             <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
               <Settings size={20} />
             </div>
-            <h1 className="font-bold text-lg hidden sm:block">Form Builder</h1>
+            <h1
+              className="font-bold text-xl hidden sm:block cursor-pointer"
+              title="Go back to Dashboard"
+              onClick={() => navigate("/")}
+            >
+              Form Builder
+            </h1>
           </div>
 
           <div className="flex items-center gap-2">
@@ -294,12 +303,12 @@ const FormBuilder: React.FC = () => {
           />
           <TypeButton
             icon={<CircleDot size={18} />}
-            label="Choice"
+            label="Checkbox"
             onClick={() => addQuestion("MULTIPLE_CHOICE")}
           />
           <TypeButton
             icon={<CheckSquare size={18} />}
-            label="Checkbox"
+            label="Choice"
             onClick={() => addQuestion("CHECKBOX")}
           />
           <TypeButton
