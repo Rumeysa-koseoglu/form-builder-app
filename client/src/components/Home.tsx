@@ -11,13 +11,12 @@ import {
   LogOut,
 } from "lucide-react";
 import type { Form, FormResponse } from "../types";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const FormDashboard: React.FC = () => {
   const [forms, setForms] = useState<Form[]>([]);
   const [responses, setResponses] = useState<FormResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { formId } = useParams<{ formId: string }>();
 
   const navigate = useNavigate();
 
@@ -35,7 +34,6 @@ const FormDashboard: React.FC = () => {
         if (!response.ok) throw new Error("Failed to fetch forms");
 
         const data = await response.json();
-        console.log("Dashboard'a gelen ham veri:", data);
 
         const rawForms = Array.isArray(data) ? data : data.rows || [];
 
@@ -47,7 +45,7 @@ const FormDashboard: React.FC = () => {
 
           isActive: f.is_published,
           createdAt: f.created_at,
-          responseCount: f.response_count || 0,
+          responseCount: parseInt(f.response_count) || 0,
         }));
 
         setForms(formattedForms);
@@ -69,6 +67,25 @@ const FormDashboard: React.FC = () => {
     const url = `${window.location.origin}/view-form/${formId}`;
     navigator.clipboard.writeText(url);
     alert("Public link copied!");
+  };
+
+  const deleteForm = async (id: string) => {
+    if (!window.confirm("Are you sure to delete this form?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const endpiont = `http://localhost:3000/api/forms/${id}`;
+      const response = await fetch(endpiont, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        setForms(forms.filter((f) => f.id !== id));
+      }
+    } catch (err) {
+      alert("Form could not be deleted.");
+    }
   };
 
   if (isLoading)
@@ -172,25 +189,25 @@ const FormDashboard: React.FC = () => {
                     icon={<BarChart3 size={18} />}
                     label="Responses"
                     className="text-indigo-600 hover:bg-indigo-50"
-                    onClick={() =>
-                      console.log("Redirect to Response Management")
-                    }
+                    onClick={() => navigate(`/responses/${form.id}`)} // Cevapları göreceğin yeni sayfa
                   />
                   <ActionButton
                     icon={<Link size={18} />}
                     label="Share"
                     className="text-slate-600 hover:bg-slate-100"
-                    onClick={() => copyShareLink(form.id)}
+                    onClick={() => copyShareLink(form.id.toString())}
                   />
                   <ActionButton
                     icon={<Edit3 size={18} />}
                     label="Edit"
                     className="text-emerald-600 hover:bg-emerald-50"
+                    onClick={() => navigate(`/edit-form/${form.id}`)}
                   />
                   <ActionButton
                     icon={<Trash2 size={18} />}
                     label="Delete"
                     className="text-rose-600 hover:bg-rose-50"
+                    onClick={() => deleteForm(form.id.toString())}
                   />
                 </div>
               </div>
