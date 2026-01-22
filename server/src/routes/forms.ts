@@ -233,6 +233,68 @@ router.delete(
       await query("ROLLBACK");
       res.status(500).json({ error: "Submit failed" });
     }
+  }),
+
+  // Get form and question to edit
+  router.get("/edit/:id", authenticateToken, async (req: any, res) => {
+    try {
+      const form = await query(
+        "SELECT * FROM forms WHERE id = $1 AND creator_id = $2",
+        [req.params.id, req.user.id]
+      );
+
+      if (form.rows.length === 0)
+        return res.status(404).json({ error: "Form not found" });
+
+      const questions = await query(
+        'SELECT * FROM questions WHERE form_id = $1 ORDER BY "order" ASC',
+        [req.params.id]
+      );
+
+      res.json({ form: form.rows[0], questions: questions.rows });
+    } catch (err) {
+      res.status(500).json({ error: "Server error" });
+    }
+  }),
+
+  // Form update route
+  router.put("/:id", authenticateToken, async (req: any, res) => {
+    const { title, description, isQuiz, questions } = req.body;
+    try {
+      await query("BEGIN");
+
+      // 1. Update form title
+      await query(
+        "UPDATE forms SET title = $1, description = $2, is_quiz = $3 WHERE id = $4 AND creator_id = $5",
+        [title, description, isQuiz, req.params.id, req.user.id]
+      );
+
+      // 2. Delete old questions
+      await query("DELETE FROM questions WHERE form_id = $1", [req.params.id]);
+
+      // 3. Add new/updated questions
+      for (const q of questions) {
+        await query(
+          `INSERT INTO questions (form_id, text, type, is_required, options, points, "order") 
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            req.params.id,
+            q.questionText,
+            q.type.toLowerCase(),
+            q.isRequired,
+            JSON.stringify(q.options),
+            q.points,
+            q.order,
+          ]
+        );
+      }
+
+      await query("COMMIT");
+      res.json({ message: "Form updated successfully" });
+    } catch (err) {
+      await query("ROLLBACK");
+      res.status(500).json({ error: "Update failed" });
+    }
   })
 );
 
