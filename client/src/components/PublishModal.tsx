@@ -106,7 +106,7 @@ const PublishModal: React.FC<PublishModalProps> = ({
       const data = await response.json();
 
       // 3. GENERATE PUBLIC LINK
-      const shareUrl = `${window.location.origin}/view/${data.id}`;
+      const shareUrl = `${window.location.origin}/view-form/${data.id}`;
       setPublishedUrl(shareUrl);
       setStatus("success");
     } catch (err: any) {
