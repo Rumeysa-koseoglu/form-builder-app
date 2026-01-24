@@ -30,13 +30,15 @@ const FormBuilder: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const { formId } = useParams<{ formId: string }>();
 
+  const API_URL = import.meta.env.VITE_API_KEY || "http://localhost//3000";
+
   useEffect(() => {
     if (formId) {
       const fetchFormData = async () => {
         setIsInitialLoading(true);
         try {
           const token = localStorage.getItem("token");
-          const res = await fetch(`/api/forms/edit/${formId}`, {
+          const res = await fetch(`${API_URL}/api/forms/edit/${formId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const data = await res.json();
@@ -80,7 +82,9 @@ const FormBuilder: React.FC = () => {
       const token = localStorage.getItem("token");
       const method = formId ? "PUT" : "POST";
 
-      const url = formId ? `/api/forms/${formId}` : "/api/forms/publish";
+      const url = formId
+        ? `${API_URL}/api/forms/${formId}`
+        : `${API_URL}/api/forms/publish`;
 
       const response = await fetch(url, {
         method: method,
