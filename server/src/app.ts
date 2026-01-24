@@ -5,7 +5,7 @@ import publicRoutes from "./routes/public.js";
 import cors from "cors";
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT: number = parseInt(process.env.PORT || "3000", 10);
 
 app.use(cors());
 app.use(express.json());
@@ -19,8 +19,8 @@ app.use((err: any, req: any, res: any, next: any) => {
   res.status(500).json({ error: "Something went wrong!" });
 });
 
-app.listen(port, () => {
-  console.log(`server is running on http://localhost:${port}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`server is running on http://localhost:${PORT}`);
 });
 
 export default app;
