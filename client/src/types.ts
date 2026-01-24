@@ -34,6 +34,7 @@ export interface Form {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  response_count?: string | number;
 }
 
 export interface Answer {
