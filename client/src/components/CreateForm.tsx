@@ -28,9 +28,6 @@ const FormBuilder: React.FC = () => {
 
   const [isInitialLoading, setIsInitialLoading] = useState<Boolean>(false);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [title, setTitle] = useState<String>();
-  const [description, setDescription] = useState<String>();
-  const [isQuiz, setIsQuiz] = useState<String>();
   const { formId } = useParams<{ formId: string }>();
 
   useEffect(() => {
@@ -64,7 +61,7 @@ const FormBuilder: React.FC = () => {
             );
           }
         } catch (err) {
-          console.error("Veri çekme hatası:", err);
+          console.error("Data pulling error:", err);
         } finally {
           setIsInitialLoading(false);
         }
@@ -81,8 +78,8 @@ const FormBuilder: React.FC = () => {
 
     try {
       const token = localStorage.getItem("token");
-
       const method = formId ? "PUT" : "POST";
+
       const url = formId ? `/api/forms/${formId}` : "/api/forms/publish";
 
       const response = await fetch(url, {
@@ -92,10 +89,9 @@ const FormBuilder: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title,
-          description,
-          isQuiz,
-
+          title: formConfig.title,
+          description: formConfig.description,
+          isQuiz: formConfig.isQuiz,
           questions: questions.map((q, index) => ({
             ...q,
             text: q.questionText,
@@ -105,7 +101,8 @@ const FormBuilder: React.FC = () => {
       });
 
       if (response.ok) {
-        navigate("/dashboard");
+        setIsInitialLoading(true);
+        navigate("/");
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.error}`);
@@ -219,7 +216,7 @@ const FormBuilder: React.FC = () => {
             <button
               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95 cursor-pointer"
               onClick={() => {
-                formId ? setActiveModal("publish") : handleSave();
+                formId ? handleSave() : setActiveModal("publish");
               }}
             >
               {formId ? <Edit3 size={20} /> : <Save size={20} />}
