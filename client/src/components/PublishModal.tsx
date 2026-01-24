@@ -76,7 +76,7 @@ const PublishModal: React.FC<PublishModalProps> = ({
 
     setStatus("loading");
     try {
-      const endpoint = "http://localhost:3000/api/forms/publish";
+      const endpoint = "/api/forms/publish";
       const token = localStorage.getItem("token");
       const response = await fetch(endpoint, {
         method: "POST",

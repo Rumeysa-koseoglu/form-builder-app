@@ -5,7 +5,7 @@ import publicRoutes from "./routes/public.js";
 import cors from "cors";
 
 const app = express();
-const PORT: number = parseInt(process.env.PORT || "3000", 10);
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(cors());
 app.use(express.json());
