@@ -110,9 +110,8 @@ const PublishModal: React.FC<PublishModalProps> = ({
       setPublishedUrl(shareUrl);
       setStatus("success");
     } catch (err: any) {
-      setErrorMessage(
-        err.message || "An unexpected error occurred during publishing."
-      );
+      setErrorMessage("An unexpected error occurred during publishing.");
+      console.error(err);
       setStatus("error");
     }
   };
