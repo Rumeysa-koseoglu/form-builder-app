@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Form, Question, Answer } from "../types";
-import { Send, ArrowLeft, CheckCircle2, Check } from "lucide-react";
+import { Send, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 const PublicFormView: React.FC = () => {
   const { formId } = useParams<{ formId: string }>();
