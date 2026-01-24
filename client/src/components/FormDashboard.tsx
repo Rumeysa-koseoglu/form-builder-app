@@ -25,7 +25,8 @@ const FormDashboard: React.FC = () => {
     const fetchMyForms = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("/api/forms", {
+        const API_URL = import.meta.env.VITE_API_KEY;
+        const response = await fetch(`${API_URL}/api/forms`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
