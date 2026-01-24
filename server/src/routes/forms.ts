@@ -114,10 +114,23 @@ router.get("/:formId/responses", authenticateToken, async (req: any, res) => {
 });
 
 router.get("/", authenticateToken, async (req: any, res) => {
+  const userId = req.user.id;
   try {
     const result = await query(
-      "SELECT f.*, COUNT(r.id) as response_count FROM forms f LEFT JOIN responses r ON f.id = r.form_id WHERE f.creator_id = $1 GROUP BY f.id ORDER BY f.created_at DESC",
-      [req.user.id]
+      `SELECT 
+    f.id, 
+    f.title, 
+    f.description, 
+    f.is_quiz, 
+    f.is_published, 
+    f.created_at, 
+    COUNT(r.id) as response_count 
+FROM forms f 
+LEFT JOIN responses r ON f.id = r.form_id 
+WHERE f.creator_id = $1 
+GROUP BY f.id 
+ORDER BY f.created_at DESC;`,
+      [userId]
     );
     res.json(result.rows);
   } catch (err) {
@@ -210,28 +223,65 @@ router.delete(
   // Submit Response
   router.post("/:formId/submit", async (req, res) => {
     const { formId } = req.params;
-    const { answers } = req.body; // Array of {questionId, value}
+    const { answers } = req.body;
 
     try {
       await query("BEGIN");
 
-      const responseResult = await query(
-        "INSERT INTO responses (form_id, submitted_at) VALUES ($1, NOW()) RETURNING id",
+      const formResult = await query(
+        "SELECT is_quiz FROM forms WHERE id = $1",
         [formId]
+      );
+      if (formResult.rows.length === 0) throw new Error("Form not found");
+      const isQuiz = formResult.rows[0].is_quiz;
+
+      const responseResult = await query(
+        "INSERT INTO responses (form_id, submitted_at, total_score) VALUES ($1, NOW(), $2) RETURNING id",
+        [formId, 0]
       );
       const responseId = responseResult.rows[0].id;
 
+      let calculatedScore = 0;
+
       for (const ans of answers) {
+        const qId = parseInt(ans.questionId);
+
         await query(
           "INSERT INTO answers (response_id, question_id, value) VALUES ($1, $2, $3)",
-          [responseId, ans.questionId, JSON.stringify(ans.value)]
+          [responseId, qId, JSON.stringify(ans.value)]
         );
+
+        if (isQuiz) {
+          const qResult = await query(
+            "SELECT correct_answer, points FROM questions WHERE id = $1",
+            [qId]
+          );
+          const question = qResult.rows[0];
+
+          if (
+            question?.correct_answer &&
+            ans.value?.toString().toLowerCase() ===
+              question.correct_answer.toLowerCase()
+          ) {
+            calculatedScore += question.points || 0;
+          }
+        }
       }
+
+      if (isQuiz) {
+        await query("UPDATE responses SET total_score = $1 WHERE id = $2", [
+          calculatedScore,
+          responseId,
+        ]);
+      }
+
       await query("COMMIT");
-      res.status(201).json({ message: "Response submitted" });
-    } catch (err) {
+      res
+        .status(201)
+        .json({ message: "Success", score: isQuiz ? calculatedScore : null });
+    } catch (err: any) {
       await query("ROLLBACK");
-      res.status(500).json({ error: "Submit failed" });
+      res.status(500).json({ error: "Submit failed", details: err.message });
     }
   }),
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Form, Question, Answer } from "../types";
-import { Send, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Send, ArrowLeft, CheckCircle2, Check } from "lucide-react";
 
 const PublicFormView: React.FC = () => {
   const { formId } = useParams<{ formId: string }>();
@@ -12,6 +12,7 @@ const PublicFormView: React.FC = () => {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [finalScore, setFinalScore] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchPublicForm = async () => {
@@ -19,14 +20,12 @@ const PublicFormView: React.FC = () => {
         const response = await fetch(`/api/forms/public/${formId}`);
         const data = await response.json();
 
-        // Konsoldaki yapıya göre atama yapıyoruz:
         if (data.form) setForm(data.form);
 
-        // Soruları alırken isim uyumsuzluğunu (text -> questionText) burada giderebilirsin
         if (data.questions) {
           const formattedQuestions = data.questions.map((q: any) => ({
             ...q,
-            questionText: q.text, // Backend'deki 'text' alanını 'questionText'e kopyalıyoruz
+            questionText: q.text,
           }));
           setQuestions(formattedQuestions);
         }
@@ -53,45 +52,85 @@ const PublicFormView: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (
+      questions.some(
+        (q) =>
+          q.isRequired && !answers.find((a) => a.questionId === q.id.toString())
+      )
+    ) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/forms/${formId}/submit`, {
+      const endpoint = `http://localhost:3000/api/forms/${formId}/submit`;
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers }),
       });
-      if (response.ok) setIsSubmitted(true);
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setFinalScore(data.score);
+        setIsSubmitted(true);
+        window.scrollTo(0, 0);
+      } else {
+        alert(data.error || "Submission failed!");
+      }
     } catch (error) {
+      console.error("Submission error:", error);
       alert("Submission failed!");
     }
   };
 
+  // --- LOADING and NOT FOUND ---
   if (isLoading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center font-bold text-slate-500">
         Loading form...
       </div>
     );
   if (!form)
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center font-bold text-slate-500">
         Form not found.
       </div>
     );
 
+  // --- SUCCESS SCREEN ---
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-white p-10 rounded-4xl shadow-xl text-center max-w-md w-full">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-ubuntu">
+        <div className="bg-white p-10 rounded-[2.5rem] shadow-xl text-center max-w-md w-full border-t-8 border-indigo-600">
           <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 size={40} />
           </div>
-          <h2 className="text-2xl font-black mb-2">Thank You!</h2>
-          <p className="text-slate-500 mb-8">
-            Your response has been successfully recorded.
+          <h2 className="text-3xl font-black text-slate-800 mb-2 tracking-tight">
+            Well Done!
+          </h2>
+
+          {finalScore !== null && (
+            <div className="my-6 p-6 bg-indigo-50 rounded-3xl border border-indigo-100">
+              <p className="text-indigo-600 font-bold uppercase text-xs tracking-widest mb-1">
+                Your Score
+              </p>
+              <p className="text-5xl font-black text-indigo-700">
+                {finalScore}
+              </p>
+            </div>
+          )}
+
+          <p className="text-slate-500 mb-8 leading-relaxed">
+            Your response has been successfully recorded. You can now close this
+            tab or go back.
           </p>
+
           <button
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center justify-center gap-2 w-full text-indigo-600 font-bold hover:underline"
+            onClick={() => navigate("/")}
+            className="flex items-center justify-center gap-2 w-full text-indigo-600 font-bold hover:underline py-2"
           >
             <ArrowLeft size={18} /> Back to Dashboard
           </button>
@@ -248,6 +287,7 @@ const PublicFormView: React.FC = () => {
           <button
             type="submit"
             className="group w-full bg-indigo-600 hover:bg-indigo-700 text-white py-5 rounded-3xl font-bold text-lg shadow-xl shadow-indigo-200 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+            onClick={handleSubmit}
           >
             <Send
               size={22}
