@@ -30,7 +30,7 @@ const FormBuilder: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const { formId } = useParams<{ formId: string }>();
 
-  const API_URL = import.meta.env.VITE_API_KEY || "http://localhost//3000";
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost://3000";
 
   useEffect(() => {
     if (formId) {

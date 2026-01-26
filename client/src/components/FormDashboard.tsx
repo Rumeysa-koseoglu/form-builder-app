@@ -17,7 +17,6 @@ const FormDashboard: React.FC = () => {
   const [forms, setForms] = useState<Form[]>([]);
   const [responses, setResponses] = useState<FormResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  console.log(responses);
 
   const navigate = useNavigate();
 
@@ -25,7 +24,8 @@ const FormDashboard: React.FC = () => {
     const fetchMyForms = async () => {
       try {
         const token = localStorage.getItem("token");
-        const API_URL = import.meta.env.VITE_API_KEY;
+        const API_URL = import.meta.env.VITE_API_URL;
+        console.log(API_URL);
         const response = await fetch(`${API_URL}/api/forms`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -57,7 +57,7 @@ const FormDashboard: React.FC = () => {
         setForms(formattedForms);
       } catch (err) {
         console.error("An error occurred while loading the dashboard:", err);
-        alert("Time has expired, please log in again.");
+        // alert("Time has expired, please log in again.");
       } finally {
         setIsLoading(false);
       }
