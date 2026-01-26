@@ -54,10 +54,10 @@ const FormDashboard: React.FC = () => {
           0
         );
         setResponses(totalRes);
+        console.log(responses);
         setForms(formattedForms);
       } catch (err) {
         console.error("An error occurred while loading the dashboard:", err);
-        // alert("Time has expired, please log in again.");
       } finally {
         setIsLoading(false);
       }
