@@ -76,7 +76,7 @@ const PublishModal: React.FC<PublishModalProps> = ({
 
     setStatus("loading");
     try {
-      const endpoint = "/api/forms/publish";
+      const endpoint = `${import.meta.env.VITE_API_URL}/api/forms/publish`;
       const token = localStorage.getItem("token");
       const response = await fetch(endpoint, {
         method: "POST",

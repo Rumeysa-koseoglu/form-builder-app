@@ -35,10 +35,9 @@ function AuthForm() {
 
   return (
     /* Auth form */ <div className="h-screen w-screen flex flex-col sm:gap-50 font-ubuntu">
-      {/* Arka plana estetik katacak sol orta indigo daire */}
+      {/** */}
       <div className="absolute top-1/2 -left-37.5 transform -translate-y-1/2 w-100 h-120 bg-indigo-400 rounded-full blur-[120px] opacity-40 z-0 pointer-events-none" />
-
-      {/* Sağ üst köşeye de çok hafif bir yansıma istersen (isteğe bağlı) */}
+      {/** */}
       <div className="absolute -top-25 -right-25 w-70 h-70 bg-indigo-300 rounded-full blur-[50px] opacity-30 z-0 pointer-events-none" />
       <motion.p
         initial={{ x: -100, opacity: 0 }}
