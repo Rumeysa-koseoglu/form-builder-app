@@ -25,7 +25,7 @@ const FormDashboard: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
         const API_URL = import.meta.env.VITE_API_URL;
-        console.log(API_URL);
+
         const response = await fetch(`${API_URL}/api/forms`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -58,9 +58,8 @@ const FormDashboard: React.FC = () => {
         setForms(formattedForms);
       } catch (err) {
         console.error("An error occurred while loading the dashboard:", err);
-      } finally {
-        setIsLoading(false);
       }
+      setIsLoading(false);
     };
 
     fetchMyForms();
@@ -333,7 +332,7 @@ const GoBackToLoginPage = () => {
       <button title="Log Out">
         <LogOut
           className=" size-5 sm:size-7 text-indigo-400 hover:text-indigo-600 transition-transform active:scale-85 cursor-pointer"
-          onClick={() => navigate("/auth")}
+          onClick={() => navigate("/")}
         />
       </button>
     </>
