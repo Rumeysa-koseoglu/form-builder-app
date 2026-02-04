@@ -129,7 +129,7 @@ const PublicFormView: React.FC = () => {
           </p>
 
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/dashboard")}
             className="flex items-center justify-center gap-2 w-full text-indigo-600 font-bold hover:underline py-2"
           >
             <ArrowLeft size={18} /> Back to Dashboard

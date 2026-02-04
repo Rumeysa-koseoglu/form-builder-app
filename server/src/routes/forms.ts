@@ -25,7 +25,7 @@ router.get("/public/:formId", async (req, res) => {
   }
 }),
   //Creating Form
-  router.post("/", authenticateToken, async (req: any, res) => {
+  router.post("/dashboard", authenticateToken, async (req: any, res) => {
     const { title, description } = req.body;
     const creator_id = req.user.id;
 
@@ -113,7 +113,7 @@ router.get("/:formId/responses", authenticateToken, async (req: any, res) => {
   }
 });
 
-router.get("/", authenticateToken, async (req: any, res) => {
+router.get("/dashboard", authenticateToken, async (req: any, res) => {
   const userId = req.user.id;
   try {
     const result = await query(

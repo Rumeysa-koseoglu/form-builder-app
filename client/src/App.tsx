@@ -9,22 +9,36 @@ import PublicFormView from "./components/PublicFormView";
 function App() {
   const PrivateRoute = ({ children }: { children: ReactNode }) => {
     const token = localStorage.getItem("token");
-    return token ? <>{children}</> : <Navigate to="/auth" />;
+    return token ? <>{children}</> : <Navigate to="/" />;
   };
   return (
     <Routes>
       <Route
-        path="/"
+        path="/dashboard"
         element={
           <PrivateRoute>
             <FormDashboard />
           </PrivateRoute>
         }
       />
-      <Route path="/auth" element={<AuthForm />} />
-      <Route path="/create-form" element={<CreateForm />} />
+      <Route path="/" element={<AuthForm />} />
+      <Route
+        path="/create-form"
+        element={
+          <PrivateRoute>
+            <CreateForm />
+          </PrivateRoute>
+        }
+      />
       <Route path="/view-form/:formId" element={<PublicFormView />} />
-      <Route path="/edit-form/:formId" element={<CreateForm />} />
+      <Route
+        path="/edit-form/:formId"
+        element={
+          <PrivateRoute>
+            <CreateForm />
+          </PrivateRoute>
+        }
+      />
     </Routes>
   );
 }

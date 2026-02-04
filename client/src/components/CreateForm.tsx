@@ -106,7 +106,7 @@ const FormBuilder: React.FC = () => {
 
       if (response.ok) {
         setIsInitialLoading(true);
-        navigate("/");
+        navigate("/dashboard");
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.error}`);
@@ -203,7 +203,7 @@ const FormBuilder: React.FC = () => {
             <h1
               className="font-bold text-xl hidden sm:block cursor-pointer"
               title="Go back to Dashboard"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/dashboard")}
             >
               Form Builder
             </h1>

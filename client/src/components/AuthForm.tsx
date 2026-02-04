@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 function AuthForm() {
   const navigate = useNavigate();
-  const [isLogin, setIslogin] = useState(true);
+  const [isLogin, setIslogin] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -16,7 +16,7 @@ function AuthForm() {
     e.preventDefault();
     setFormData({ ...formData, email: "", password: "", name: "" });
 
-    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+    const endpoint = "/";
 
     try {
       const res = await api.post(endpoint, {
@@ -26,7 +26,7 @@ function AuthForm() {
       });
 
       localStorage.setItem("token", res.data.token);
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       console.error(err);
       alert(isLogin ? "Login failed" : "Register failed");

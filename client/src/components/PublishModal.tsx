@@ -204,7 +204,7 @@ const PublishModal: React.FC<PublishModalProps> = ({
                 View Public Form <ExternalLink size={18} />
               </button>
               <button
-                onClick={() => (window.location.href = "/")}
+                onClick={() => (window.location.href = "/dashboard")}
                 className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all"
               >
                 Back to Dashboard <ArrowRight size={18} />
