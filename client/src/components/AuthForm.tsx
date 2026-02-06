@@ -16,7 +16,7 @@ function AuthForm() {
     e.preventDefault();
     setFormData({ ...formData, email: "", password: "", name: "" });
 
-    const endpoint = "/";
+    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
 
     try {
       const res = await api.post(endpoint, {
