@@ -36,19 +36,19 @@ function AuthForm() {
   return (
     /* Auth form */ <div className="h-screen w-screen flex flex-col sm:gap-50 font-ubuntu">
       {/** */}
-      <div className="absolute top-1/2 -left-37.5 transform -translate-y-1/2 w-100 h-120 bg-indigo-400 rounded-full blur-[120px] opacity-40 z-0 pointer-events-none" />
-      {/** */}
-      <div className="absolute -top-25 -right-25 w-70 h-70 bg-indigo-300 rounded-full blur-[50px] opacity-30 z-0 pointer-events-none" />
-      <motion.p
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="p-10 mt-10 text-6xl flex flex-col gap-4 font-bold"
-      >
-        WELCOME TO <br />
-        <span className="ml-80 text-indigo-700">FORM BUILDER</span>
-      </motion.p>
-      <div className="w-full h-full flex flex-col items-center">
+      <div className="w-full h-full flex flex-col items-center justify-center">
+        <div className="absolute top-1/2 -left-37.5 transform -translate-y-1/2 w-100 h-120 bg-indigo-400 rounded-full blur-[120px] opacity-40 z-0 pointer-events-none" />
+        {/** */}
+        <div className="absolute -top-25 -right-25 w-70 h-70 bg-indigo-300 rounded-full blur-[50px] opacity-30 z-0 pointer-events-none" />
+        <motion.p
+          initial={{ x: -100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="p-10 mt-10 text-6xl flex flex-col gap-4 font-bold"
+        >
+          WELCOME TO <br />
+          <span className="ml-80 text-indigo-700">FORM BUILDER</span>
+        </motion.p>
         {isLogin ? (
           /* Login form */
           <form
